@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Uncharted — Define Your Own Path.</title>
+<title>Uncharted — No maps. No rules.</title>
 <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
@@ -84,7 +84,7 @@ const LOGO_SRC = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUAAAAFACAYAAADN
 // Secret Key). In the deployed project this reads from Vite's env system —
 // add VITE_PAYSTACK_PUBLIC_KEY in Vercel's Environment Variables, prefixed
 // with VITE_ so Vite exposes it to the browser bundle.
-const PAYSTACK_PUBLIC_KEY = ""; // standalone preview build — real key only lives in the Vite project
+const PAYSTACK_PUBLIC_KEY = "pk_live_2d69a74e84fd44a6be236d5ecf1d0a04ad9cec2b";
 
 const BANK = {
   bank: "Opay",
@@ -324,7 +324,7 @@ function UnchartedStore() {
   const [paystackReady, setPaystackReady] = useState(false);
   const [paystackLoading, setPaystackLoading] = useState(false);
   const [paystackError, setPaystackError] = useState("");
-  const [paystackStatus, setPaystackStatus] = useState(null); // null | "checking" | "success" | "failed" | "abandoned" | "unknown"
+  const [paystackStatus, setPaystackStatus] = useState(null); // null | "paid"
 
   // Load Paystack's inline checkout script once, so payment happens in a popup
   // without ever leaving the site.
@@ -377,12 +377,8 @@ function UnchartedStore() {
         ],
       },
       callback: (response) => {
-        setPaystackStatus("checking");
         setPaystackLoading(false);
-        fetch(`/api/paystack-verify?reference=${encodeURIComponent(response.reference)}`)
-          .then((r) => r.json())
-          .then((data) => setPaystackStatus(data.status || "unknown"))
-          .catch(() => setPaystackStatus("unknown"));
+        setPaystackStatus("paid");
       },
       onClose: () => setPaystackLoading(false),
     });
@@ -589,29 +585,21 @@ function UnchartedStore() {
 
       {/* ABOUT */}
       <section id="about" style={{ borderTop: `1px solid ${C.line}`, borderBottom: `1px solid ${C.line}`, background: C.surface }}>
-        <div className="max-w-6xl mx-auto px-5 py-24 grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <span style={{ color: C.brass, fontFamily: "'Space Mono', monospace" }} className="text-xs uppercase tracking-widest">
-              About the brand
-            </span>
-            <h2 style={{ fontFamily: "'Anton', sans-serif" }} className="text-3xl md:text-4xl uppercase mt-3 mb-6 leading-tight">
-              Built off the beaten path
-            </h2>
-            <p style={{ color: C.paperDim }} className="leading-relaxed mb-4">
-              Uncharted started with one idea: the best routes aren't on any map. We design for
-              people who set their own coordinates — streetwear built with the same care as
-              expedition gear, cut for the city.
-            </p>
-            <p style={{ color: C.paperDim }} className="leading-relaxed">
-              Every drop is small, numbered, and gone once it's gone. No restocks. No shortcuts.
-            </p>
-          </div>
-          <div style={{ position: "relative", height: 320, border: `1px solid ${C.line}`, background: `linear-gradient(160deg, #2a2a22, #0f0e0b)` }}>
-            <ContourField opacity={0.8} onDark />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <MapPin size={48} style={{ color: C.brass }} />
-            </div>
-          </div>
+        <div className="max-w-2xl mx-auto px-5 py-24">
+          <span style={{ color: C.brass, fontFamily: "'Space Mono', monospace" }} className="text-xs uppercase tracking-widest">
+            About the brand
+          </span>
+          <h2 style={{ fontFamily: "'Anton', sans-serif" }} className="text-3xl md:text-4xl uppercase mt-3 mb-6 leading-tight">
+            Built off the beaten path
+          </h2>
+          <p style={{ color: C.paperDim }} className="leading-relaxed mb-4">
+            Uncharted started with one idea: the best routes aren't on any map. We design for
+            people who set their own coordinates — streetwear built with the same care as
+            expedition gear, cut for the city.
+          </p>
+          <p style={{ color: C.paperDim }} className="leading-relaxed">
+            Every drop is small, numbered, and gone once it's gone. No restocks. No shortcuts.
+          </p>
         </div>
       </section>
 
@@ -824,25 +812,14 @@ function UnchartedStore() {
                 <span style={{ color: C.brass, fontFamily: "'Space Mono', monospace" }} className="text-lg">{naira(total)}</span>
               </div>
 
-              {paystackStatus && (
+              {paystackStatus === "paid" && (
                 <div
-                  style={{
-                    background: paystackStatus === "success" ? "rgba(34,150,80,0.1)" : "rgba(185,28,28,0.1)",
-                    border: `1px solid ${paystackStatus === "success" ? "#229650" : C.brass}`,
-                  }}
+                  style={{ background: "rgba(34,150,80,0.1)", border: "1px solid #229650" }}
                   className="flex items-start gap-2 p-3 mb-4"
                 >
-                  {paystackStatus === "checking" ? (
-                    <Loader2 size={16} style={{ color: C.brass, flexShrink: 0, marginTop: 1 }} className="animate-spin" />
-                  ) : paystackStatus === "success" ? (
-                    <CheckCircle size={16} style={{ color: "#229650", flexShrink: 0, marginTop: 1 }} />
-                  ) : (
-                    <AlertTriangle size={16} style={{ color: C.brass, flexShrink: 0, marginTop: 1 }} />
-                  )}
-                  <p style={{ color: paystackStatus === "success" ? "#229650" : C.brass }} className="text-xs font-bold uppercase tracking-wide leading-snug">
-                    {paystackStatus === "checking" && "Confirming your payment with Paystack..."}
-                    {paystackStatus === "success" && "Payment confirmed! We'll message you on WhatsApp to arrange delivery."}
-                    {paystackStatus !== "checking" && paystackStatus !== "success" && "We couldn't auto-confirm this payment. Please message us your receipt on WhatsApp just in case."}
+                  <CheckCircle size={16} style={{ color: "#229650", flexShrink: 0, marginTop: 1 }} />
+                  <p style={{ color: "#229650" }} className="text-xs font-bold uppercase tracking-wide leading-snug">
+                    Payment received! Please also send us your receipt on WhatsApp so we can confirm and start preparing your order.
                   </p>
                 </div>
               )}
