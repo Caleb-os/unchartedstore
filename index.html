@@ -393,14 +393,14 @@ function UnchartedStore() {
             value: cart.map((i) => `${i.qty}x ${i.name} (${i.size})`).join(", "),
           },
           { display_name: "Delivery to", variable_name: "delivery", value: location },
-          { display_name: "Address", variable_name: "address", value: locationNote || "Not provided" },
+          { display_name: "Address & Contact", variable_name: "address", value: locationNote || "Not provided" },
         ],
       },
       callback: (response) => {
         setPaystackLoading(false);
         setPaystackStatus("paid");
         const lines = cart.map((i) => `${i.qty}x ${i.name} — Size ${i.size} (${i.code})`);
-        const message = `Hi Uncharted, I just paid via Paystack for:\n${lines.join("\n")}\n\nDelivery to: ${location} (${naira(deliveryFee)})${locationNote ? `\nAddress: ${locationNote}` : ""}\nTotal paid: ${naira(total)}\nReference: ${response.reference}\n\nAttaching my payment screenshot now.`;
+        const message = `Hi Uncharted, I just paid via Paystack for:\n${lines.join("\n")}\n\nDelivery to: ${location} (${naira(deliveryFee)})${locationNote ? `\nAddress & Contact: ${locationNote}` : ""}\nTotal paid: ${naira(total)}\nReference: ${response.reference}\n\nAttaching my payment screenshot now.`;
         // brief pause so the "Payment received!" banner is actually seen before we navigate away
         setTimeout(() => {
           window.location.href = `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
@@ -441,7 +441,7 @@ function UnchartedStore() {
 
   const paidMessage = useMemo(() => {
     const lines = cart.map((i) => `${i.qty}x ${i.name} — Size ${i.size} (${i.code})`);
-    return `Hi Uncharted, I've sent ${naira(total)} via ${BANK.bank} for:\n${lines.join("\n")}\n\nDelivery to: ${location} (${naira(deliveryFee)})${locationNote ? `\nAddress: ${locationNote}` : ""}\n\nAttaching my receipt now.`;
+    return `Hi Uncharted, I've sent ${naira(total)} via ${BANK.bank} for:\n${lines.join("\n")}\n\nDelivery to: ${location} (${naira(deliveryFee)})${locationNote ? `\nAddress & Contact: ${locationNote}` : ""}\n\nAttaching my receipt now.`;
   }, [cart, total, location, deliveryFee, locationNote]);
 
   const [copied, setCopied] = useState(false);
@@ -825,11 +825,14 @@ function UnchartedStore() {
                   ))}
                 </select>
 
+                  <span style={{ color: C.paperDim, fontFamily: "'Space Mono', monospace" }} className="text-xs uppercase tracking-widest mt-4 block">
+                    Address & contact info
+                  </span>
                   <textarea
                     value={locationNote}
                     onChange={(e) => setLocationNote(e.target.value)}
-                    placeholder="Add your exact address — street, area, and any landmark (e.g. 'No. 4 Ring Road, opposite UCH gate, Ibadan')"
-                    rows={2}
+                    placeholder="Exact address (street, area, landmark) and a phone number we can reach you on for delivery"
+                    rows={3}
                     style={{ background: C.bg, border: `1px solid ${C.line}`, color: C.paper }}
                     className="w-full mt-2 px-3 py-2 text-sm outline-none resize-none"
                   />
